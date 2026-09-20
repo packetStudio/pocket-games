@@ -1,0 +1,57 @@
+name: Auto Scaffold Pocket Games
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Scaffold App
+        run: |
+          git config --global user.name "packetStudio"
+          git config --global user.email "bot@packetstudio.com"
+
+          # 1. Initialize Expo
+          npx create-expo-app@latest . --template blank-typescript --yes
+
+          # 2. Install game & navigation dependencies
+          npx expo install react-native-svg react-native-screens react-native-safe-area-context @react-navigation/native @react-navigation/native-stack
+          npm install firebase
+
+          # 3. Create folder architecture
+          mkdir -p src/config src/core/multiplayer src/core/chat src/navigation src/screens src/games/bhag-buggu-bhag/engine src/games/bhag-buggu-bhag/components src/games/bhag-buggu-bhag/screens assets/games/bhag-buggu-bhag
+
+          # 4. Create Registry
+          cat << 'EOF' > src/config/gamesRegistry.ts
+          export interface GameMeta {
+            id: string;
+            title: string;
+            subtitle: string;
+            badgeText: string;
+            routeKey: string;
+          }
+
+          export const GAMES_REGISTRY: GameMeta[] = [
+            {
+              id: 'bhag-buggu-bhag',
+              title: 'Bhag Buggu Bhag',
+              subtitle: 'Catch the Thief (Node Chase)',
+              badgeText: 'Classic',
+              routeKey: 'BhagBugguBhagModes',
+            },
+          ];
+          EOF
+
+          # 5. Commit and push back to repo
+          git add -A
+          git commit -m "Scaffold Pocket Games architecture via GitHub Actions"
+          git push origin main
