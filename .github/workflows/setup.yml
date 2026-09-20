@@ -13,53 +13,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Scaffold App
+      - name: Create Full Game Structure & Placeholders
         run: |
           git config --global user.name "packetStudio-bot"
           git config --global user.email "bot@packetstudio.com"
 
-          # Create app in a clean temp folder
-          npx create-expo-app@latest temp-app --template blank-typescript --yes
+          # 1. Ensure all directories exist
+          mkdir -p src/config \
+                   src/core/multiplayer \
+                   src/core/chat \
+                   src/navigation \
+                   src/screens \
+                   src/games/bhag-buggu-bhag/engine \
+                   src/games/bhag-buggu-bhag/components \
+                   src/games/bhag-buggu-bhag/screens \
+                   assets/games/bhag-buggu-bhag
 
-          # Copy everything into root
-          shopt -s dotglob
-          cp -rn temp-app/* .
-          rm -rf temp-app
-
-          # Install packages
-          npx expo install react-native-svg react-native-screens react-native-safe-area-context @react-navigation/native @react-navigation/native-stack
-          npm install firebase
-
-          # Create folder architecture
-          mkdir -p src/config src/core/multiplayer src/core/chat src/navigation src/screens src/games/bhag-buggu-bhag/engine src/games/bhag-buggu-bhag/components src/games/bhag-buggu-bhag/screens assets/games/bhag-buggu-bhag
-
-          # Create game registry
-          cat << 'EOF' > src/config/gamesRegistry.ts
-          export interface GameMeta {
-            id: string;
-            title: string;
-            subtitle: string;
-            badgeText: string;
-            routeKey: string;
-          }
-
-          export const GAMES_REGISTRY: GameMeta[] = [
-            {
-              id: 'bhag-buggu-bhag',
-              title: 'Bhag Buggu Bhag',
-              subtitle: 'Catch the Thief (Node Chase)',
-              badgeText: 'Classic',
-              routeKey: 'BhagBugguBhagModes',
-            },
-          ];
+          # 2. Add placeholder and starter files
+          
+          # Hub Navigation
+          cat << 'EOF' > src/navigation/AppNavigator.tsx
+          import React from 'react';
+          export const AppNavigator = () => null;
           EOF
 
-          # Save and push to main
+          # Hub Home Screen
+          cat << 'EOF' > src/screens/HomeScreen.tsx
+          import React from 'react';
+          export const HomeScreen = () => null;
+          EOF
+
+          # Core modules
+          touch src/core/multiplayer/firebaseService.ts
+          touch src/core/chat/chatService.ts
+
+          # Bhag Buggu Bhag Engine
+          touch src/games/bhag-buggu-bhag/engine/graphData.ts
+          touch src/games/bhag-buggu-bhag/engine/gameRules.ts
+          touch src/games/bhag-buggu-bhag/engine/pathfinding.ts
+
+          # Bhag Buggu Bhag Components & Screens
+          touch src/games/bhag-buggu-bhag/components/GameBoard.tsx
+          touch src/games/bhag-buggu-bhag/screens/BhagBugguBhagScreen.tsx
+          touch assets/games/bhag-buggu-bhag/.gitkeep
+
+          # 3. Commit and push
           git add -A
-          git commit -m "Scaffold complete Pocket Games boilerplate"
+          git commit -m "Populate full directory structure with starter files"
           git push origin main
