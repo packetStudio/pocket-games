@@ -11,7 +11,7 @@ export default function App() {
   const [activeLevel, setActiveLevel] = useState<LevelConfig | null>(null);
   const [highScores, setHighScores] = useState<Record<number, { moves: number; stars: number }>>({});
 
-  // Load saved high scores from disk on initial app mount
+  // Load saved high scores from local disk on startup
   useEffect(() => {
     (async () => {
       try {
@@ -33,7 +33,7 @@ export default function App() {
           ...prev,
           [levelId]: { moves, stars: Math.max(stars, existing?.stars || 1) },
         };
-        // Persist to local disk
+        // Persist updated records to local storage
         AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated)).catch((err) =>
           console.warn('Failed to persist score:', err)
         );
@@ -67,5 +67,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#0F172A',
+    paddingTop: StatusBar.currentHeight ?? 0,
   },
 });
