@@ -1,24 +1,49 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import Svg from 'react-native-svg';
 import { GameBoard } from '../components/GameBoard';
+import { PoliceSprite } from '../components/PoliceSprite';
+import { BugguSprite } from '../components/BugguSprite';
 import { ALL_LEVELS, LevelConfig } from '../engine/graphData';
-import { isValidMove, checkVictory, Turn, GameStatus } from '../engine/gameRules';
+import { isValidMove, checkVictory, GameStatus } from '../engine/gameRules';
 import { getBestBugguMove } from '../engine/pathfinding';
 
-export const BhagBugguBhagScreen: React.FC = () => {
-  const [levelIndex, setLevelIndex] = useState<number>(0);
-  const currentLevel: LevelConfig = ALL_LEVELS[levelIndex];
+interface BhagBugguBhagScreenProps {
+  initialLevel?: LevelConfig;
+  onBackToHub?: () => void;
+}
+
+export const BhagBugguBhagScreen: React.FC<BhagBugguBhagScreenProps> = ({
+  initialLevel = ALL_LEVELS[0],
+  onBackToHub,
+}) => {
+  const [levelIndex, setLevelIndex] = useState(
+    ALL_LEVELS.findIndex((lvl) => lvl.id === initialLevel.id) !== -1
+      ? ALL_LEVELS.findIndex((lvl) => lvl.id === initialLevel.id)
+      : 0
+  );
+  const currentLevel = ALL_LEVELS[levelIndex];
 
   const [policePositions, setPolicePositions] = useState<number[]>(currentLevel.initialPolice);
   const [bugguPosition, setBugguPosition] = useState<number>(currentLevel.initialBuggu);
   const [selectedPoliceIndex, setSelectedPoliceIndex] = useState<number | null>(null);
-  const [currentTurn, setCurrentTurn] = useState<Turn>('POLICE');
+  const [currentTurn, setCurrentTurn] = useState<'POLICE' | 'BUGGU'>('POLICE');
   const [gameStatus, setGameStatus] = useState<GameStatus>('PLAYING');
 
-  const resetGame = (newLevelIdx = levelIndex) => {
-    const lvl = ALL_LEVELS[newLevelIdx];
-    setLevelIndex(newLevelIdx);
-    setPolicePositions(lvl.initialPolice);
+  useEffect(() => {
+    resetLevel(levelIndex);
+  }, [levelIndex]);
+
+  const resetLevel = (idx: number) => {
+    const lvl = ALL_LEVELS[idx];
+    setPolicePositions([...lvl.initialPolice]);
     setBugguPosition(lvl.initialBuggu);
     setSelectedPoliceIndex(null);
     setCurrentTurn('POLICE');
@@ -27,24 +52,24 @@ export const BhagBugguBhagScreen: React.FC = () => {
 
   const handleBugguTurn = (activePolice: number[]) => {
     setTimeout(() => {
-      const nextBugguMove = getBestBugguMove(bugguPosition, activePolice, currentLevel.nodes);
+      const nextMove = getBestBugguMove(bugguPosition, activePolice, currentLevel.nodes);
 
-      if (nextBugguMove === null) {
+      if (nextMove === null) {
         setGameStatus('POLICE_WON');
         Alert.alert('Thief Caught!', 'Buggu is surrounded! Police won!', [
           { text: 'Next Level', onPress: () => nextLevel() },
-          { text: 'Replay', onPress: () => resetGame() },
+          { text: 'Replay', onPress: () => resetLevel(levelIndex) },
         ]);
         return;
       }
 
-      setBugguPosition(nextBugguMove);
+      setBugguPosition(nextMove);
+      const status = checkVictory(nextMove, activePolice, currentLevel.nodes);
 
-      const statusAfterMove = checkVictory(nextBugguMove, activePolice, currentLevel.nodes);
-      if (statusAfterMove === 'BUGGU_WON') {
+      if (status === 'BUGGU_WON') {
         setGameStatus('BUGGU_WON');
-        Alert.alert('Escaped!', 'Buggu reached an exit target! Buggu won!', [
-          { text: 'Try Again', onPress: () => resetGame() },
+        Alert.alert('Escaped!', 'Buggu reached an escape exit! Thief won!', [
+          { text: 'Try Again', onPress: () => resetLevel(levelIndex) },
         ]);
       } else {
         setCurrentTurn('POLICE');
@@ -53,26 +78,23 @@ export const BhagBugguBhagScreen: React.FC = () => {
   };
 
   const nextLevel = () => {
-    const nextIdx = (levelIndex + 1) % ALL_LEVELS.length;
-    resetGame(nextIdx);
+    setLevelIndex((prev) => (prev + 1) % ALL_LEVELS.length);
   };
 
   const onNodePress = (nodeId: number) => {
     if (gameStatus !== 'PLAYING' || currentTurn !== 'POLICE') return;
 
-    // Check if clicked on one of the police officers
-    const clickedPoliceIndex = policePositions.indexOf(nodeId);
-    if (clickedPoliceIndex !== -1) {
-      setSelectedPoliceIndex(clickedPoliceIndex);
+    const copIdx = policePositions.indexOf(nodeId);
+    if (copIdx !== -1) {
+      setSelectedPoliceIndex(copIdx);
       return;
     }
 
-    // Attempt to move selected officer to empty node
     if (selectedPoliceIndex !== null) {
       const fromNodeId = policePositions[selectedPoliceIndex];
-      const occupied = [...policePositions, bugguPosition];
+      const occupiedNodes = [...policePositions, bugguPosition];
 
-      if (isValidMove(fromNodeId, nodeId, currentLevel.nodes, occupied)) {
+      if (isValidMove(fromNodeId, nodeId, currentLevel.nodes, occupiedNodes)) {
         const updatedPolice = [...policePositions];
         updatedPolice[selectedPoliceIndex] = nodeId;
         setPolicePositions(updatedPolice);
@@ -83,7 +105,7 @@ export const BhagBugguBhagScreen: React.FC = () => {
           setGameStatus('POLICE_WON');
           Alert.alert('Thief Caught!', 'Buggu is surrounded! Police won!', [
             { text: 'Next Level', onPress: () => nextLevel() },
-            { text: 'Replay', onPress: () => resetGame() },
+            { text: 'Replay', onPress: () => resetLevel(levelIndex) },
           ]);
           return;
         }
@@ -95,14 +117,52 @@ export const BhagBugguBhagScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{currentLevel.name}</Text>
-        <Text style={styles.turnIndicator}>
-          Turn: {currentTurn === 'POLICE' ? '👮 Police (Your Turn)' : '🦹 Buggu is thinking...'}
-        </Text>
+    <SafeAreaView style={styles.safeArea}>
+      {/* NAVIGATION & HEADER BAR */}
+      <View style={styles.topBar}>
+        {onBackToHub ? (
+          <TouchableOpacity style={styles.backButton} onPress={onBackToHub}>
+            <Text style={styles.backButtonText}>← HUB</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 60 }} />
+        )}
+        <Text style={styles.levelBadge}>{currentLevel.name}</Text>
+        <TouchableOpacity style={styles.restartIconBtn} onPress={() => resetLevel(levelIndex)}>
+          <Text style={styles.restartIconText}>↺</Text>
+        </TouchableOpacity>
       </View>
 
+      {/* TURN STATUS BANNER (USING VECTOR SPRITES) */}
+      <View style={styles.turnCard}>
+        <View style={styles.turnRow}>
+          {currentTurn === 'POLICE' ? (
+            <>
+              <View style={styles.badgeSvgWrapper}>
+                <Svg width={32} height={32} viewBox="0 0 32 32">
+                  <PoliceSprite x={16} y={16} size={28} />
+                </Svg>
+              </View>
+              <Text style={styles.turnLabel}>
+                POLICE TURN: Select an officer, then tap an adjacent ring
+              </Text>
+            </>
+          ) : (
+            <>
+              <View style={styles.badgeSvgWrapper}>
+                <Svg width={32} height={32} viewBox="0 0 32 32">
+                  <BugguSprite x={16} y={16} size={26} />
+                </Svg>
+              </View>
+              <Text style={styles.turnLabel}>
+                BUGGU MOVING: Plotting escape route...
+              </Text>
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* GAME BOARD CANVAS */}
       <View style={styles.boardWrapper}>
         <GameBoard
           nodes={currentLevel.nodes}
@@ -113,12 +173,13 @@ export const BhagBugguBhagScreen: React.FC = () => {
         />
       </View>
 
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.button} onPress={() => resetGame()}>
-          <Text style={styles.buttonText}>Restart</Text>
+      {/* FOOTER ACTIONS */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => resetLevel(levelIndex)}>
+          <Text style={styles.actionBtnText}>Restart</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={nextLevel}>
-          <Text style={styles.buttonText}>Switch Level</Text>
+        <TouchableOpacity style={[styles.actionBtn, styles.nextBtn]} onPress={nextLevel}>
+          <Text style={styles.actionBtnText}>Next Level →</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -126,50 +187,101 @@ export const BhagBugguBhagScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#3E424B',
-    alignItems: 'center',
+    backgroundColor: '#0F172A',
     justifyContent: 'space-between',
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  header: {
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  turnIndicator: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFD54F',
     marginTop: 6,
   },
-  boardWrapper: {
-    marginVertical: 10,
+  backButton: {
+    backgroundColor: '#1E293B',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  controls: {
+  backButtonText: {
+    color: '#38BDF8',
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  levelBadge: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#F8FAFC',
+  },
+  restartIconBtn: {
+    backgroundColor: '#1E293B',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  restartIconText: {
+    color: '#94A3B8',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  turnCard: {
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  turnRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  button: {
-    backgroundColor: '#1E88E5',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    elevation: 3,
+  badgeSvgWrapper: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  secondaryButton: {
-    backgroundColor: '#546E7A',
-  },
-  buttonText: {
-    color: '#FFFFFF',
+  turnLabel: {
+    fontSize: 12,
     fontWeight: '700',
-    fontSize: 15,
+    color: '#FCD34D',
+    flexShrink: 1,
+  },
+  boardWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  actionBtn: {
+    flex: 1,
+    backgroundColor: '#334155',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  nextBtn: {
+    backgroundColor: '#2563EB',
+  },
+  actionBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
   },
 });
