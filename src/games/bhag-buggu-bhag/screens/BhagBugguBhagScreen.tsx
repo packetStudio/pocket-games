@@ -7,9 +7,28 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
+  Vibration,
+  Platform,
 } from 'react-native';
 import Svg, { Line, Circle, G, Rect, Path, Ellipse, Polygon } from 'react-native-svg';
 import { LevelConfig, ALL_LEVELS, GameNode, calculateStars } from '../engine/graphData';
+
+// --- Haptic Feedback Triggers ---
+const triggerTapHaptic = () => {
+  if (Platform.OS === 'ios') {
+    Vibration.vibrate();
+  } else {
+    Vibration.vibrate(20);
+  }
+};
+
+const triggerWinHaptic = () => {
+  Vibration.vibrate([0, 80, 50, 120, 50, 200]);
+};
+
+const triggerLossHaptic = () => {
+  Vibration.vibrate(400);
+};
 
 // --- Vector Sprites ---
 const BugguSprite = ({ x, y, size = 44 }: { x: number; y: number; size?: number }) => {
@@ -173,6 +192,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
   }, [levelIndex]);
 
   const handlePoliceWon = (finalMoves: number) => {
+    triggerWinHaptic();
     setGameStatus('POLICE_WON');
     const starsEarned = calculateStars(finalMoves, currentLevel.starThresholds);
     onSaveHighScore(currentLevel.id, finalMoves, starsEarned);
@@ -201,6 +221,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
       setBugguPosition(nextMove);
       const targetNode = currentLevel.nodes.find((n) => n.id === nextMove);
       if (targetNode?.isEscapeTarget) {
+        triggerLossHaptic();
         setGameStatus('BUGGU_WON');
         Alert.alert('Escaped!', `Buggu reached the exit in ${updatedMoves} turns!`, [
           { text: 'Try Again', onPress: () => resetLevel(levelIndex) },
@@ -216,6 +237,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
 
     const copIdx = policePositions.indexOf(nodeId);
     if (copIdx !== -1) {
+      triggerTapHaptic();
       setSelectedPoliceIndex(copIdx);
       return;
     }
@@ -227,6 +249,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
       const isOccupied = policePositions.includes(nodeId) || bugguPosition === nodeId;
 
       if (isNeighbor && !isOccupied) {
+        triggerTapHaptic();
         const nextMoves = moves + 1;
         setMoves(nextMoves);
 
