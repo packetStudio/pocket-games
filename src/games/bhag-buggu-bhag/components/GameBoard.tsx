@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Line, Circle, G, Text as SvgText } from 'react-native-svg';
+import Svg, { Line, Circle, G } from 'react-native-svg';
 import { GameNode } from '../engine/graphData';
+import { BugguSprite } from './BugguSprite';
+import { PoliceSprite } from './PoliceSprite';
+import { ExitPortalSprite } from './ExitPortalSprite';
 
 interface GameBoardProps {
   nodes: GameNode[];
@@ -22,7 +25,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 }) => {
   // Convert 0-100 percentage coordinates to absolute board pixels
   const getCoords = (percentageX: number, percentageY: number) => {
-    const padding = 28;
+    const padding = 32;
     const usableWidth = boardSize - padding * 2;
     return {
       cx: padding + (percentageX / 100) * usableWidth,
@@ -36,7 +39,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <View style={[styles.container, { width: boardSize, height: boardSize }]}>
       <Svg width={boardSize} height={boardSize}>
-        {/* 1. Track Lines / Paths */}
+        {/* 1. Track Lines / Pathways */}
         {nodes.map(node => {
           const from = getCoords(node.x, node.y);
           return node.neighbors.map(neighborId => {
@@ -55,7 +58,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 y1={from.cy}
                 x2={to.cx}
                 y2={to.cy}
-                stroke="#64B5F6"
+                stroke="#4A5568"
                 strokeWidth={7}
                 strokeLinecap="round"
               />
@@ -63,7 +66,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           });
         })}
 
-        {/* 2. Nodes (Blue Transit Rings & Red Escape Target Rings) */}
+        {/* 2. Nodes & Escape Portals */}
         {nodes.map(node => {
           const { cx, cy } = getCoords(node.x, node.y);
           const isSelected =
@@ -71,17 +74,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
           return (
             <G key={`node-${node.id}`} onPress={() => onNodePress(node.id)}>
-              {/* Escape Target Red Ring Indicator */}
+              {/* Highlight escape target with animated portal sprite */}
               {node.isEscapeTarget && (
-                <Circle
-                  cx={cx}
-                  cy={cy}
-                  r={22}
-                  stroke="#E53935"
-                  strokeWidth={3.5}
-                  fill="none"
-                  strokeDasharray="4, 3"
-                />
+                <ExitPortalSprite cx={cx} cy={cy} radius={24} />
               )}
 
               {/* Base Node Outer Ring */}
@@ -89,23 +84,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 cx={cx}
                 cy={cy}
                 r={16}
-                fill="#FFFFFF"
-                stroke={isSelected ? '#FFD54F' : '#42A5F5'}
-                strokeWidth={isSelected ? 4.5 : 3.5}
+                fill="#EDF2F7"
+                stroke={isSelected ? '#E9C46A' : '#718096'}
+                strokeWidth={isSelected ? 4 : 3}
               />
 
               {/* Base Node Center Fill */}
               <Circle
                 cx={cx}
                 cy={cy}
-                r={9}
-                fill={isSelected ? '#FFCA28' : '#BBDEFB'}
+                r={8}
+                fill={isSelected ? '#F4A261' : '#CBD5E0'}
               />
             </G>
           );
         })}
 
-        {/* 3. Police Tokens */}
+        {/* 3. Police Officers (Sprites) */}
         {policePositions.map((nodeId, index) => {
           const node = nodes.find(n => n.id === nodeId);
           if (!node) return null;
@@ -114,42 +109,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
           return (
             <G key={`police-${index}`} onPress={() => onNodePress(nodeId)}>
-              {/* Selection Halo */}
-              {isSelected && (
-                <Circle
-                  cx={cx}
-                  cy={cy}
-                  r={25}
-                  stroke="#FFD54F"
-                  strokeWidth={4}
-                  fill="none"
-                />
-              )}
-
-              {/* Police Avatar Token */}
-              <Circle
-                cx={cx}
-                cy={cy}
-                r={18}
-                fill="#1E88E5"
-                stroke="#FFFFFF"
-                strokeWidth={2.5}
-              />
-              <SvgText
-                x={cx}
-                y={cy + 5}
-                fontSize="15"
-                fontWeight="bold"
-                fill="#FFFFFF"
-                textAnchor="middle"
-              >
-                👮
-              </SvgText>
+              <PoliceSprite x={cx} y={cy} size={48} isSelected={isSelected} />
             </G>
           );
         })}
 
-        {/* 4. Buggu Token */}
+        {/* 4. Buggu (Sprite) */}
         {(() => {
           const bugguNode = nodes.find(n => n.id === bugguPosition);
           if (!bugguNode) return null;
@@ -157,24 +122,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
           return (
             <G key="buggu-token" onPress={() => onNodePress(bugguPosition)}>
-              <Circle
-                cx={cx}
-                cy={cy}
-                r={20}
-                fill="#E53935"
-                stroke="#FFFFFF"
-                strokeWidth={2.5}
-              />
-              <SvgText
-                x={cx}
-                y={cy + 6}
-                fontSize="16"
-                fontWeight="bold"
-                fill="#FFFFFF"
-                textAnchor="middle"
-              >
-                🦹
-              </SvgText>
+              <BugguSprite x={cx} y={cy} size={46} />
             </G>
           );
         })()}
@@ -185,14 +133,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#717882',
+    backgroundColor: '#2D3748',
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });
