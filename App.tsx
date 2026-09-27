@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { ArcadeHubScreen } from './src/screens/ArcadeHubScreen';
-import { BhagBugguBhagScreen } from './src/games/bhag-buggu-bhag/BhagBugguBhagScreen';
+import { BhagBugguBhagScreen } from './src/games/bhag-buggu-bhag/screens/BhagBugguBhagScreen';
 import { LevelConfig } from './src/games/bhag-buggu-bhag/engine/graphData';
 
 export default function App() {
