@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Svg, { Line, Circle, G, Rect, Path, Ellipse, Polygon } from 'react-native-svg';
 import { LevelConfig, ALL_LEVELS, GameNode, calculateStars } from '../engine/graphData';
+import { soundFX } from '../../../utils/audio';
 
 // --- Haptic Feedback Triggers ---
 const triggerTapHaptic = () => {
@@ -193,6 +194,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
 
   const handlePoliceWon = (finalMoves: number) => {
     triggerWinHaptic();
+    soundFX.playVictory();
     setGameStatus('POLICE_WON');
     const starsEarned = calculateStars(finalMoves, currentLevel.starThresholds);
     onSaveHighScore(currentLevel.id, finalMoves, starsEarned);
@@ -222,6 +224,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
       const targetNode = currentLevel.nodes.find((n) => n.id === nextMove);
       if (targetNode?.isEscapeTarget) {
         triggerLossHaptic();
+        soundFX.playEscape();
         setGameStatus('BUGGU_WON');
         Alert.alert('Escaped!', `Buggu reached the exit in ${updatedMoves} turns!`, [
           { text: 'Try Again', onPress: () => resetLevel(levelIndex) },
@@ -238,6 +241,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
     const copIdx = policePositions.indexOf(nodeId);
     if (copIdx !== -1) {
       triggerTapHaptic();
+      soundFX.playMove();
       setSelectedPoliceIndex(copIdx);
       return;
     }
@@ -250,6 +254,7 @@ export const BhagBugguBhagScreen: React.FC<Props> = ({
 
       if (isNeighbor && !isOccupied) {
         triggerTapHaptic();
+        soundFX.playMove();
         const nextMoves = moves + 1;
         setMoves(nextMoves);
 
