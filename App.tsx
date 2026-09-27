@@ -1,20 +1,30 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { BhagBugguBhagScreen } from './src/games/bhag-buggu-bhag/screens/BhagBugguBhagScreen';
+import React, { useState } from 'react';
+import { View, StyleSheet, StatusBar } from 'react-native';
+import { ArcadeHubScreen } from './src/screens/ArcadeHubScreen';
+import { BhagBugguBhagScreen } from './src/games/bhag-buggu-bhag/BhagBugguBhagScreen';
+import { LevelConfig } from './src/games/bhag-buggu-bhag/engine/graphData';
 
 export default function App() {
+  const [activeLevel, setActiveLevel] = useState<LevelConfig | null>(null);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      <BhagBugguBhagScreen />
-    </SafeAreaView>
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+      {activeLevel ? (
+        <BhagBugguBhagScreen
+          initialLevel={activeLevel}
+          onBackToHub={() => setActiveLevel(null)}
+        />
+      ) : (
+        <ArcadeHubScreen onSelectLevel={(lvl) => setActiveLevel(lvl)} />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#3E424B',
+    backgroundColor: '#0F172A',
   },
 });
