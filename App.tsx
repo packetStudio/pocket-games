@@ -6,6 +6,20 @@ import { LevelConfig } from './src/games/bhag-buggu-bhag/engine/graphData';
 
 export default function App() {
   const [activeLevel, setActiveLevel] = useState<LevelConfig | null>(null);
+  const [highScores, setHighScores] = useState<Record<number, { moves: number; stars: number }>>({});
+
+  const handleSaveHighScore = (levelId: number, moves: number, stars: number) => {
+    setHighScores((prev) => {
+      const existing = prev[levelId];
+      if (!existing || moves < existing.moves) {
+        return {
+          ...prev,
+          [levelId]: { moves, stars: Math.max(stars, existing?.stars || 1) },
+        };
+      }
+      return prev;
+    });
+  };
 
   return (
     <View style={styles.root}>
@@ -14,9 +28,14 @@ export default function App() {
         <BhagBugguBhagScreen
           initialLevel={activeLevel}
           onBackToHub={() => setActiveLevel(null)}
+          highScores={highScores}
+          onSaveHighScore={handleSaveHighScore}
         />
       ) : (
-        <ArcadeHubScreen onSelectLevel={(lvl) => setActiveLevel(lvl)} />
+        <ArcadeHubScreen
+          onSelectLevel={(lvl) => setActiveLevel(lvl)}
+          highScores={highScores}
+        />
       )}
     </View>
   );
