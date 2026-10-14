@@ -22,14 +22,13 @@ export interface LevelConfig {
 
 export const ALL_LEVELS: LevelConfig[] = [
   // ----------------------------------------------------
-  // LEVEL 1 (Level 6 Screenshot): Heart Wedge
-  // 3 Officers at top, Buggu at the bottom node
+  // LEVEL 1: Heart Wedge
   // ----------------------------------------------------
   {
     id: 1,
     name: 'Heart Wedge',
-    initialPolice: [1, 2, 3], // 3 Cops
-    initialBuggu: 8,          // Buggu at bottom
+    initialPolice: [1, 2, 3],
+    initialBuggu: 8,
     starThresholds: { three: 6, two: 9 },
     nodes: [
       { id: 1, x: 30, y: 16, neighbors: [2, 4], isEscapeTarget: true },
@@ -37,15 +36,14 @@ export const ALL_LEVELS: LevelConfig[] = [
       { id: 3, x: 70, y: 16, neighbors: [2, 5], isEscapeTarget: true },
       { id: 4, x: 18, y: 26, neighbors: [1, 6, 7] },
       { id: 5, x: 82, y: 26, neighbors: [3, 6, 7] },
-      { id: 6, x: 50, y: 52, neighbors: [2, 4, 5, 7, 8] }, // Center junction
+      { id: 6, x: 50, y: 52, neighbors: [2, 4, 5, 7, 8] },
       { id: 7, x: 18, y: 52, neighbors: [4, 6, 8] },
-      { id: 8, x: 50, y: 84, neighbors: [6, 7, 5] },       // Bottom apex
+      { id: 8, x: 50, y: 84, neighbors: [6, 7, 5] },
     ],
   },
 
   // ----------------------------------------------------
-  // LEVEL 2 (Level 7 Screenshot): Corner Sweep
-  // 3 Officers on the left vertical track, Buggu at bottom-right
+  // LEVEL 2: Corner Sweep
   // ----------------------------------------------------
   {
     id: 2,
@@ -61,19 +59,18 @@ export const ALL_LEVELS: LevelConfig[] = [
       { id: 5, x: 44, y: 48, neighbors: [2, 4, 6, 7] },
       { id: 6, x: 44, y: 74, neighbors: [3, 5, 7, 8] },
       { id: 7, x: 64, y: 48, neighbors: [4, 5, 6, 8] },
-      { id: 8, x: 84, y: 74, neighbors: [6, 7] }, // Bottom right
+      { id: 8, x: 84, y: 74, neighbors: [6, 7] },
     ],
   },
 
   // ----------------------------------------------------
-  // LEVEL 3 (Level 8 Screenshot): 4-Lane Funnel
-  // 4 Officers across the top row, Buggu at the bottom funnel tip
+  // LEVEL 3: 4-Lane Funnel
   // ----------------------------------------------------
   {
     id: 3,
     name: '4-Lane Funnel',
-    initialPolice: [1, 2, 3, 4], // 4 Cops
-    initialBuggu: 11,            // Buggu at bottom apex
+    initialPolice: [1, 2, 3, 4],
+    initialBuggu: 11,
     starThresholds: { three: 8, two: 12 },
     nodes: [
       { id: 1, x: 20, y: 18, neighbors: [2, 5, 6], isEscapeTarget: true },
@@ -85,14 +82,13 @@ export const ALL_LEVELS: LevelConfig[] = [
       { id: 7, x: 60, y: 40, neighbors: [3, 4, 6, 10, 11] },
       { id: 8, x: 80, y: 40, neighbors: [4, 11] },
       { id: 9, x: 20, y: 62, neighbors: [5, 6, 11] },
-      { id: 10, x: 50, y: 62, neighbors: [6, 7, 11] }, // Central neck
-      { id: 11, x: 50, y: 84, neighbors: [9, 10, 8] },  // Bottom tip
+      { id: 10, x: 50, y: 62, neighbors: [6, 7, 11] },
+      { id: 11, x: 50, y: 84, neighbors: [9, 10, 8] },
     ],
   },
 
   // ----------------------------------------------------
-  // LEVEL 4 (Level 9 Screenshot): Horizontal Pincer
-  // 3 Officers on the left column, Buggu at the right apex
+  // LEVEL 4: Horizontal Pincer
   // ----------------------------------------------------
   {
     id: 4,
@@ -105,31 +101,30 @@ export const ALL_LEVELS: LevelConfig[] = [
       { id: 2, x: 18, y: 48, neighbors: [5] },
       { id: 3, x: 18, y: 74, neighbors: [5, 6], isEscapeTarget: true },
       { id: 4, x: 38, y: 22, neighbors: [1, 5, 7] },
-      { id: 5, x: 38, y: 48, neighbors: [1, 2, 3, 4, 6, 7] }, // Left core hub
+      { id: 5, x: 38, y: 48, neighbors: [1, 2, 3, 4, 6, 7] },
       { id: 6, x: 38, y: 74, neighbors: [3, 5, 7] },
-      { id: 7, x: 58, y: 48, neighbors: [4, 5, 6, 8] },      // Neck node
-      { id: 8, x: 84, y: 48, neighbors: [7, 4, 6] },         // Right apex
+      { id: 7, x: 58, y: 48, neighbors: [4, 5, 6, 8] },
+      { id: 8, x: 84, y: 48, neighbors: [7, 4, 6] },
     ],
   },
 
   // ----------------------------------------------------
-  // LEVEL 5 (Level 10 Screenshot): House Fortress
-  // 3 Officers at bottom row advancing up toward Buggu on rooftop
+  // LEVEL 5: House Fortress
   // ----------------------------------------------------
   {
     id: 5,
     name: 'House Fortress',
-    initialPolice: [1, 2, 3], // 3 Cops at bottom
-    initialBuggu: 7,          // Buggu at roof peak
+    initialPolice: [1, 2, 3],
+    initialBuggu: 7,
     starThresholds: { three: 7, two: 11 },
     nodes: [
       { id: 1, x: 20, y: 76, neighbors: [4], isEscapeTarget: true },
       { id: 2, x: 50, y: 76, neighbors: [5] },
       { id: 3, x: 80, y: 76, neighbors: [6], isEscapeTarget: true },
       { id: 4, x: 20, y: 52, neighbors: [1, 5, 7] },
-      { id: 5, x: 50, y: 52, neighbors: [2, 4, 6, 7] }, // Middle center
+      { id: 5, x: 50, y: 52, neighbors: [2, 4, 6, 7] },
       { id: 6, x: 80, y: 52, neighbors: [3, 5, 7] },
-      { id: 7, x: 50, y: 22, neighbors: [4, 5, 6] },    // Rooftop apex
+      { id: 7, x: 50, y: 22, neighbors: [4, 5, 6] },
     ],
   },
 ];
